@@ -1,160 +1,148 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>รายชื่ออาคาร ม.แม่โจ้</title>
-  
-  <!-- ฟอนต์ Prompt -->
-  <link href="https://fonts.googleapis.com/css2?family=Prompt&display=swap" rel="stylesheet" />
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ตารางการใช้ห้อง ม.แม่โจ้</title>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --primary: #1B5006;
-      --secondary: #4FB477;
-      --background: #FFFFFF;
-      --text: #1E152A;
-      --accent: #3A2E39;
-    }
-
     body {
       font-family: 'Prompt', sans-serif;
       margin: 0;
       padding: 1rem;
-      background-color: var(--background);
-      color: var(--text);
+      background: #f7f9fb;
+      color: #1E152A;
     }
-
-    header h1 {
+    .header {
       text-align: center;
       margin-bottom: 1rem;
-      color: var(--primary);
     }
-
     .filters {
       display: flex;
-      flex-direction: column;
+      flex-wrap: wrap;
       gap: 0.5rem;
-      margin-bottom: 1.5rem;
-      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
     }
-
-    .filters select,
-    .filters input,
-    .filters button {
-      width: 100%;
-      max-width: 320px;
+    select, button {
       padding: 0.5rem;
       font-size: 1rem;
-      border: 1px solid var(--accent);
-      background-color: var(--secondary);
-      color: white;
+      min-width: 150px;
       border-radius: 4px;
-    }
-
-    .filters button:hover {
-      background-color: var(--primary);
+      border: 1px solid #3A2E39;
+      background: #4FB477;
+      color: white;
       cursor: pointer;
     }
-
-    #selectedBuilding {
-      text-align: center;
-      font-size: 1.1rem;
-      color: var(--accent);
+    button:hover {
+      background: #1B5006;
     }
-
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 2rem;
+    }
+    th, td {
+      border: 1px solid #3A2E39;
+      padding: 0.4rem;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+    th {
+      background: #1B5006;
+      color: white;
+    }
+    td.empty {
+      background: #fff;
+      color: #ccc;
+    }
     @media (min-width: 600px) {
-      .filters {
-        flex-direction: row;
-        justify-content: center;
-      }
-
-      .filters select,
-      .filters input,
-      .filters button {
+      select, button {
         max-width: 200px;
-        flex: 1;
       }
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>รายชื่ออาคาร มหาวิทยาลัยแม่โจ้</h1>
-  </header>
+  <div class="header">
+    <h2>ตารางการใช้ห้อง มหาวิทยาลัยแม่โจ้</h2>
+  </div>
 
-  <section class="filters">
-    <select id="buildingSelect">
-      <option value="">-- เลือกอาคาร --</option>
-    </select>
-  </section>
+  <div class="filters">
+    <select id="roomSelect"></select>
+    <button id="loadBtn">ดูตาราง</button>
+  </div>
 
-  <p id="selectedBuilding"></p>
+  <div id="tableContainer"></div>
 
   <script>
+    // รายชื่ออาคาร
     const buildings = [
-      {code: "000", name: "ประกาศภายหลัง"},
-      {code: "101", name: "อาคารพัฒนาวิศัยทัศน์"},
-      {code: "102", name: "ประเสริฐ ณ นคร"},
-      {code: "103", name: "สมิตตานนท์"},
-      {code: "104", name: "คณะวิศวกรรมและอุตสาหกรรมเกษตร"},
-      {code: "105", name: "คณะวิทยาศาสตร์"},
-      {code: "106", name: "คณะเทคโนโลยีการประมงและทรัพยากรทางน้ำ"},
-      {code: "107", name: "คณะบริหารธุรกิจ"},
-      {code: "108", name: "ภาควิชาทรัพยากรดินและสิ่งแวดล้อม"},
-      {code: "109", name: "อาคารเทคโนโลยีภูมิทัศน์"},
-      {code: "110", name: "ศูนย์กีฬาเฉลิมพระเกียรติ (โซน B)"},
-      {code: "111", name: "ศูนย์กล้วยไม้และไม้ดอกไม้ประดับ"},
-      {code: "112", name: "คณะสัตวศาสตร์และเทคโนโลยี"},
-      {code: "113", name: "อาคารกำจรบุญแปง"},
-      {code: "114", name: "อาคารเมล็ดพันธุ์"},
-      {code: "115", name: "อาคารไม้ผล"},
-      {code: "116", name: "อาคารพืชผัก"},
-      {code: "117", name: "อาคารเนื้อเยื่อ"},
-      {code: "118", name: "ภาควิชา"},
-      {code: "119", name: "TBA"},
-      {code: "120", name: "ภาคพืชไร่"},
-      {code: "121", name: "อาคารเทคโนโลยีชีวภาพ"},
-      {code: "122", name: "อาคาร 77"},
-      {code: "123", name: "ภาควิชาพืชสวน"},
-      {code: "124", name: "อาคารสุวรรณวาจกกิสิกิจ"},
-      {code: "125", name: "อาคารแม่โจ้ 70 ปี : สร้างปัญญาเพื่อแผ่นดิน"},
-      {code: "126", name: "อาคารปฏิบัติการรวมทางพืช"},
-      {code: "127", name: "อาคารหม่อนไหม"},
-      {code: "128", name: "ศูนย์วิจัยควบคุมศัตรูพืชโดยชีวินทรีย์ฯ"},
-      {code: "129", name: "อาคารเฉลิมพระเกียรติสมเด็จพระเทพฯ"},
-      {code: "130", name: "อาคารไม้ผล 2"},
-      {code: "140", name: "อาคารเศรษฐศาสตร์"},
-      {code: "141", name: "อาคารจุฬาภรณ์"},
-      {code: "142", name: "อาคารเทพ พงษ์พานิช"},
-      {code: "143", name: "อาคาร 75 ปี (คณะสารสนเทศแลการสื่อสาร)"},
-      {code: "144", name: "สระว่ายน้ำอุบุลรัตนราชกัญญา"},
-      {code: "145", name: "วิทยาลัยพลังงานทดแทน"},
-      {code: "146", name: "อาคารเทอดกสิกร"},
-      {code: "147", name: "อาคารเรียนรวม 80 ปี"},
-      {code: "148", name: "อาคารเรียนรวมคณะสถาปัตยกรรมศาสตร์และการออกแบบสิ่งแวดล้อม"},
-      {code: "149", name: "อาคารศูนย์ภาษา"},
-      {code: "150", name: "อาคารพยาบาลศาสตร์"},
-      {code: "151", name: "ศูนย์เรียนรู้เทคโนโลยีการควบคุมศัตรูพืชโดยชีววิธี (ฟาร์มมหาวิทยาลัย)"},
-      {code: "152", name: "การเรียนการสอนแบบออนไลน์"},
-      {code: "153", name: "อาคารเรียนรวมและปฏิบัติการ คณะสัตวแพทยศาสตร์"},
-      {code: "154", name: "อาคารปฏิบัติการโรงพยาบาลสัตว์"}
+      {code: "101", name:"อาคารพัฒนาวิศัยทัศน์"},
+      {code: "102", name:"ประเสริฐ ณ นคร"},
+      {code: "103", name:"สมิตตานนท์"},
+      // ... เพิ่มให้ครบตามต้องการ
     ];
 
-    const select = document.getElementById("buildingSelect");
-    const display = document.getElementById("selectedBuilding");
+    // ตารางจำลอง (ตัวอย่าง JSON)
+    const mockData = {
+      "101": {
+        rooms:["101"],
+        timeslots:["08:00-09:00","09:00-10:00","10:00-11:00"],
+        entries:[
+          {timeslot:"08:00-09:00", room:"101", subject:"โครงสร้างข้อมูล", teacher:"อ.สมชาย"},
+          {timeslot:"09:00-10:00", room:"101", subject:"ระบบฐานข้อมูล", teacher:"อ.วิรัตน์"},
+        ]
+      },
+      "102": { /* ... */ }
+    };
 
+    const roomSelect = document.getElementById('roomSelect');
+    const loadBtn = document.getElementById('loadBtn');
+    const tableContainer = document.getElementById('tableContainer');
+
+    // เติม dropdown
     buildings.forEach(b => {
-      const option = document.createElement("option");
-      option.value = b.code;
-      option.textContent = `${b.code} - ${b.name}`;
-      select.appendChild(option);
+      const o = document.createElement('option');
+      o.value = b.code;
+      o.textContent = `${b.code} - ${b.name}`;
+      roomSelect.appendChild(o);
     });
 
-    select.addEventListener("change", () => {
-      const selected = buildings.find(b => b.code === select.value);
-      display.textContent = selected ? `คุณเลือก: ${selected.name}` : '';
+    loadBtn.addEventListener('click', () => {
+      const code = roomSelect.value;
+      if (!code) {
+        tableContainer.innerHTML = '<p>กรุณาเลือกอาคารก่อน</p>';
+        return;
+      }
+      const data = mockData[code] || {rooms:[],timeslots:[],entries:[]};
+      renderTable(data);
     });
+
+    function renderTable(data) {
+      if (data.rooms.length === 0) {
+        tableContainer.innerHTML = '<p>ไม่มีข้อมูลในอาคารนี้</p>';
+        return;
+      }
+
+      let html = '<table><thead><tr><th>เวลา\\ห้อง</th>';
+      data.rooms.forEach(r => html += `<th>${r}</th>`);
+      html += '</tr></thead><tbody>';
+
+      data.timeslots.forEach(ts => {
+        html += `<tr><th>${ts}</th>`;
+        data.rooms.forEach(r => {
+          const e = data.entries.find(en=>en.timeslot===ts&&en.room===r);
+          html += e
+            ? `<td>${e.subject}<br><small>${e.teacher}</small></td>`
+            : `<td class="empty">–</td>`;
+        });
+        html += '</tr>';
+      });
+
+      html += '</tbody></table>';
+      tableContainer.innerHTML = html;
+    }
   </script>
 </body>
 </html>
