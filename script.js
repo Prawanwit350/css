@@ -1,69 +1,85 @@
-const roomSelect = document.getElementById('roomSelect');
-const dateInput = document.getElementById('dateInput');
-const loadBtn = document.getElementById('loadBtn');
-const tableContainer = document.getElementById('tableContainer');
-
-// ตัวอย่างรายชื่ออาคาร
 const buildings = [
   { code: "101", name: "อาคารพัฒนาวิศัยทัศน์" },
   { code: "102", name: "ประเสริฐ ณ นคร" },
-  { code: "103", name: "สมิตตานนท์" },
 ];
-
-// ตัวอย่างข้อมูลจำลอง
-const mockData = {
-  "101": {
-    rooms: ["101"],
-    timeslots: ["08:00-09:00", "09:00-10:00", "10:00-11:00"],
+const roomsByBuilding = {
+  "101": ["101", "102", "103"],
+  "102": ["201", "202"],
+};
+const scheduleData = {
+  "101|101": {
+    timeslots: ["08:00-09:00","09:00-10:00","10:00-11:00"],
     entries: [
-      { timeslot: "08:00-09:00", room: "101", subject: "โครงสร้างข้อมูล", teacher: "อ.สมชาย" },
-      { timeslot: "09:00-10:00", room: "101", subject: "ระบบฐานข้อมูล", teacher: "อ.วิรัตน์" },
+      { day:"จันทร์", time:"08:00-09:00", code:"10301231", group:"(3),1", room:"101" },
+      { day:"อังคาร", time:"09:00-10:00", code:"10301112", group:"(3),1", room:"101" },
+      { day:"พฤหัสบดี", time:"10:00-11:00", code:"10301223", group:"(3),1", room:"101" },
     ]
   }
 };
 
-// เติม dropdown
+const buildingSelect = document.getElementById("buildingSelect");
+const roomSelect = document.getElementById("roomSelect");
+const loadBtn = document.getElementById("loadBtn");
+const tableContainer = document.getElementById("tableContainer");
+
+// init buildings
 buildings.forEach(b => {
-  const opt = document.createElement('option');
-  opt.value = b.code;
-  opt.textContent = `${b.code} - ${b.name}`;
-  roomSelect.appendChild(opt);
+  const o = document.createElement("option");
+  o.value = b.code;
+  o.textContent = `${b.code} - ${b.name}`;
+  buildingSelect.appendChild(o);
 });
 
-loadBtn.onclick = () => {
-  const code = roomSelect.value;
-  if (!code) {
-    tableContainer.innerHTML = '<p>กรุณาเลือกอาคาร</p>';
+buildingSelect.addEventListener("change", () => {
+  const b = buildingSelect.value;
+  roomSelect.innerHTML = '<option value="">-- เลือกห้อง --</option>';
+  if (!b) {
+    roomSelect.disabled = true;
+    loadBtn.disabled = true;
     return;
   }
+  roomsByBuilding[b].forEach(r => {
+    const o = document.createElement("option");
+    o.value = r;
+    o.textContent = r;
+    roomSelect.appendChild(o);
+  });
+  roomSelect.disabled = false;
+  loadBtn.disabled = true;
+});
 
-  const data = mockData[code] || { rooms: [], timeslots: [], entries: [] };
-  renderTable(data);
-};
+roomSelect.addEventListener("change", () => {
+  loadBtn.disabled = !roomSelect.value;
+});
+
+loadBtn.addEventListener("click", () => {
+  const b = buildingSelect.value, r = roomSelect.value;
+  const key = `${b}|${r}`;
+  if (!scheduleData[key]) {
+    tableContainer.innerHTML = `<p>ไม่มีข้อมูลตาราง</p>`;
+    return;
+  }
+  renderTable(scheduleData[key]);
+});
 
 function renderTable(data) {
-  if (!data.rooms.length) {
-    tableContainer.innerHTML = '<p>ไม่มีข้อมูลสำหรับอาคารที่เลือก</p>';
-    return;
-  }
-
-  let html = '<table><thead><tr><th>เวลา\\ห้อง</th>';
-  data.rooms.forEach(r => html += `<th>${r}</th>`);
-  html += '</tr></thead><tbody>';
-
-  data.timeslots.forEach(ts => {
-    html += `<tr><th>${ts}</th>`;
-    data.rooms.forEach(r => {
-      const e = data.entries.find(en => en.timeslot === ts && en.room === r);
+  const days = ["จันทร์","อังคาร","พุธ","พฤหัสบดี","ศุกร์"];
+  let html = `<table><thead><tr><th>วัน\\เวลา</th>`;
+  data.timeslots.forEach(t => html += `<th>${t}</th>`);
+  html += `</tr></thead><tbody>`;
+  
+  days.forEach(day => {
+    html += `<tr><th>${day}</th>`;
+    data.timeslots.forEach(time => {
+      const e = data.entries.find(item => item.day === day && item.time === time);
       if (e) {
-        html += `<td data-label="เวลา: ${ts}, ห้อง: ${r}">${e.subject}<br><small>${e.teacher}</small></td>`;
+        html += `<td data-label="${day} ${time}">${e.code}<br>${e.group}<br>${e.room}</td>`;
       } else {
-        html += `<td data-label="เวลา: ${ts}, ห้อง: ${r}" class="empty">–</td>`;
+        html += `<td class="empty" data-label="${day} ${time}">-</td>`;
       }
     });
-    html += '</tr>';
+    html += "</tr>";
   });
-
-  html += '</tbody></table>';
+  html += "</tbody></table>";
   tableContainer.innerHTML = html;
 }

@@ -1,22 +1,26 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ตารางการใช้งานห้อง</title>
-  <link href="https://fonts.googleapis.com/css2?family=Prompt&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Prompt&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <main>
     <h1 class="header">ตารางการใช้งานห้อง</h1>
-
-    <section class="filters">
-      <select id="roomSelect"><option value="">-- เลือกอาคาร --</option></select>
-      <input type="date" id="dateInput" />
-      <button id="loadBtn">ดูตาราง</button>
-    </section>
-
+    
+    <div class="filters">
+      <select id="buildingSelect">
+        <option value="">-- เลือกอาคาร --</option>
+      </select>
+      <select id="roomSelect" disabled>
+        <option value="">-- เลือกห้อง --</option>
+      </select>
+      <button id="loadBtn" disabled>ดูตาราง</button>
+    </div>
+    
     <div class="table-container" id="tableContainer"></div>
   </main>
   <script src="script.js"></script>
