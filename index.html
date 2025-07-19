@@ -1,67 +1,30 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ตารางการใช้ห้อง </title>
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
-  
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ตารางการใช้ห้อง</title>
   <style>
-    :root {
-      --green-dark: #1B5E06;
-      --green-mint: #4FBA77;
-      --white: #FFFFFF;
-      --purple-dark: #1E152A;
-      --gray-dark: #3A2E39;
-      --blue-class: #a3c9ff;
-    }
-
     body {
       font-family: 'Sarabun', sans-serif;
       margin: 0;
-      padding: 16px;
-      background: var(--white);
-      color: var(--purple-dark);
+      padding: 10px;
+      background: #fff;
+      color: #333;
     }
 
     h2 {
       text-align: center;
-      color: var(--green-dark);
-    }
-
-    select, button {
-      width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      border-radius: 6px;
-      font-size: 1rem;
-      box-sizing: border-box;
-    }
-
-    select {
-      border: 1px solid var(--gray-dark);
-    }
-
-    button {
-      background-color: var(--green-dark);
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: var(--green-mint);
+      color: #1B5E06;
     }
 
     .schedule-table {
       width: 100%;
       border-collapse: collapse;
       font-size: 0.8rem;
-      margin-top: 20px;
     }
 
-    .schedule-table th,
-    .schedule-table td {
+    .schedule-table th, .schedule-table td {
       border: 1px solid #999;
       text-align: center;
       vertical-align: top;
@@ -69,8 +32,8 @@
     }
 
     .schedule-table th {
-      background-color: var(--gray-dark);
-      color: white;
+      background-color: #3A2E39;
+      color: #fff;
     }
 
     .schedule-table td.time-col {
@@ -79,22 +42,17 @@
     }
 
     .class-block {
-      background-color: var(--blue-class);
+      background-color: #a3c9ff;
       height: 60px;
+      position: relative;
+      overflow: hidden;
+      font-size: 0.75rem;
+      white-space: nowrap;
     }
 
     .class-block p {
       margin: 2px 0;
       line-height: 1.2;
-      font-size: 0.75rem;
-    }
-
-    @media (min-width: 600px) {
-      select, button {
-        max-width: 400px;
-        margin: 8px auto;
-        display: block;
-      }
     }
   </style>
 </head>
@@ -102,121 +60,87 @@
 
   <h2>ตารางการใช้ห้อง</h2>
 
-  <select id="roomSelect">
-    <option value="Lab คอม3-4 ประเภท : ไม่กำหนด ความจุ : 120 พื้นที่ : 120">
-      Lab คอม3-4 ประเภท : ไม่กำหนด ความจุ : 120 พื้นที่ : 120
-    </option>
-  </select>
-
-  <button id="showBtn">แสดงตาราง</button>
-
-  <div id="scheduleContainer"></div>
-
-  <script>
-    const timeSlots = [
-      "8:00-9:00", "9:00-10:00", "10:00-11:00", "11:00-12:00",
-      "12:00-13:00", "13:00-14:00", "14:00-15:00", "15:00-16:00"
-    ];
-
-    const timeToIndex = {};
-    timeSlots.forEach((slot, index) => timeToIndex[slot] = index);
-
-    const roomData = {
-      "Lab คอม3-4 ประเภท : ไม่กำหนด ความจุ : 120 พื้นที่ : 120": {
-        "จันทร์": {
-          "9:00-12:00": ["10301231", "(3) 1,", "L1"],
-          "13:00-15:00": ["10301222", "(3) 1,", "L1"]
-        },
-        "อังคาร": {
-          "8:00-10:00": ["10301231", "(3) 1,", "L1"],
-          "13:00-14:00": ["10301225", "(3) 1,", "L1"]
-        },
-        "พุธ": {
-          "9:00-12:00": ["10301112", "(3) 1,", "L1"]
-        },
-        "พฤหัสบดี": {
-          "9:00-12:00": ["10301222", "(3) 1,", "L1"],
-          "13:00-15:00": ["10301223", "(3) 1,", "L1"]
-        },
-        "ศุกร์": {
-          "9:00-12:00": ["10301111", "(3) 1,", "L1"],
-          "13:00-16:00": ["10301223", "(3) 1,", "L1"]
-        }
-      }
-    };
-
-    const roomSelect = document.getElementById("roomSelect");
-    const showBtn = document.getElementById("showBtn");
-    const scheduleContainer = document.getElementById("scheduleContainer");
-
-    const days = ["จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์"];
-
-    showBtn.addEventListener("click", () => {
-      const room = roomSelect.value;
-      const schedule = roomData[room];
-
-      const table = document.createElement("table");
-      table.className = "schedule-table";
-
-      // Create header
-      const thead = document.createElement("thead");
-      const headRow = document.createElement("tr");
-      headRow.innerHTML = "<th>Day/Time</th>";
-      timeSlots.forEach(slot => {
-        const th = document.createElement("th");
-        th.textContent = slot;
-        headRow.appendChild(th);
-      });
-      thead.appendChild(headRow);
-      table.appendChild(thead);
-
-      // Create body
-      const tbody = document.createElement("tbody");
-      days.forEach(day => {
-        const row = document.createElement("tr");
-        const dayCell = document.createElement("td");
-        dayCell.textContent = day;
-        dayCell.className = "time-col";
-        row.appendChild(dayCell);
-
-        let i = 0;
-        while (i < timeSlots.length) {
-          let filled = false;
-
-          const slots = Object.keys(schedule[day] || {});
-          for (let slot of slots) {
-            const [start, end] = slot.split("-");
-            const startIndex = timeSlots.findIndex(t => t.startsWith(start));
-            const endIndex = timeSlots.findIndex(t => t.endsWith(end));
-            const colspan = endIndex - startIndex;
-
-            if (i === startIndex) {
-              const [code, group, loc] = schedule[day][slot];
-              const td = document.createElement("td");
-              td.colSpan = colspan;
-              td.className = "class-block";
-              td.innerHTML = `<p>${code}</p><p>${group}</p><p>${loc}</p>`;
-              row.appendChild(td);
-              i += colspan;
-              filled = true;
-              break;
-            }
-          }
-
-          if (!filled) {
-            row.appendChild(document.createElement("td"));
-            i++;
-          }
-        }
-
-        tbody.appendChild(row);
-      });
-
-      table.appendChild(tbody);
-      scheduleContainer.innerHTML = '';
-      scheduleContainer.appendChild(table);
-    });
-  </script>
+  <table class="schedule-table">
+    <thead>
+      <tr>
+        <th>Day/Time</th>
+        <th>08:00-09:00</th>
+        <th>09:00-10:00</th>
+        <th>10:00-11:00</th>
+        <th>11:00-12:00</th>
+        <th>12:00-13:00</th>
+        <th>13:00-14:00</th>
+        <th>14:00-15:00</th>
+        <th>15:00-16:00</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="time-col">จันทร์</td>
+        <td colspan="2" class="class-block">
+          <p>10301231</p>
+          <p>(3) 1,</p>
+          <p>L1</p>
+        </td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td colspan="2" class="class-block">
+          <p>10301222</p>
+          <p>(3) 1,</p>
+          <p>L1</p>
+        </td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="time-col">อังคาร</td>
+        <td class="class-block">
+          <p>10301231</p>
+          <p>(3) 1,</p>
+          <p>L1</p>
+        </td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td colspan="2" class="class-block">
+          <p>10301225</p>
+          <p>(3) 1,</p>
+          <p>L1</p>
+        </td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="time-col">พุธ</td>
+        <td colspan="2" class="class-block">
+          <p>10301112</p>
+          <p>(3) 1,</p>
+          <p>L1</p>
+        </td>
+        <td></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr>
+        <td class="time-col">พฤหัสบดี</td>
+        <td></td><td></td><td></td><td></td>
+        <td></td>
+        <td colspan="2" class="class-block">
+          <p>10301223</p>
+          <p>(3) 1,</p>
+          <p>L1</p>
+        </td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="time-col">ศุกร์</td>
+        <td></td><td></td><td></td><td></td><td></td><td></td>
+        <td colspan="2" class="class-block">
+          <p>10301223</p>
+          <p>(3) 1,</p>
+          <p>L1</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 
 </body>
 </html>
