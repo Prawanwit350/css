@@ -2,46 +2,172 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ตารางการใช้ห้อง</title>
-  <link href="https://fonts.googleapis.com/css2?family=Prompt&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <title>ระบบตารางเวลาห้องเรียน</title>
+  <style>
+    body {
+      font-family: "Sarabun", sans-serif;
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 0 10px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    select {
+      padding: 6px 10px;
+      margin-right: 15px;
+      font-size: 16px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #444;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #f0f0f0;
+    }
+    .available {
+      background-color: #c8e6c9; /* สีเขียวอ่อน = ว่าง */
+      cursor: pointer;
+    }
+    .booked {
+      background-color: #ffcdd2; /* สีแดงอ่อน = จองแล้ว */
+      cursor: not-allowed;
+    }
+  </style>
 </head>
 <body>
-  <header>
-    <h1>ตารางการใช้ห้อง</h1>
-  </header>
 
-  <section class="filters">
-    <select id="buildingSelect">
-      <option value="">-- เลือกอาคาร --</option>
-    </select>
-    <select id="roomSelect">
-      <option value="">-- เลือกห้อง --</option>
-    </select>
-  </section>
+<h1>ระบบตารางเวลาห้องเรียน</h1>
 
-  <section class="schedule">
-    <table>
-      <thead>
-        <tr>
-          <th>Day/Time</th>
-          <th>8:00-9:00</th>
-          <th>9:00-10:00</th>
-          <th>10:00-11:00</th>
-          <th>11:00-12:00</th>
-          <th>12:00-13:00</th>
-          <th>13:00-14:00</th>
-          <th>14:00-15:00</th>
-          <th>15:00-16:00</th>
-        </tr>
-      </thead>
-      <tbody id="scheduleBody">
-        <!-- ตารางจะถูกเติมโดย JavaScript -->
-      </tbody>
-    </table>
-  </section>
+<div>
+  <label for="campusSelect">เลือกวิทยาเขต:</label>
+  <select id="campusSelect">
+    <option value="50">แม่โจ้</option>
+    <option value="51">เชียงใหม่</option>
+    <option value="52">ลำพูน</option>
+  </select>
 
-  <script src="script.js"></script>
+  <label for="roomSelect">เลือกห้องเรียน:</label>
+  <select id="roomSelect">
+    <!-- ห้องเรียนจะถูกเติมโดย JavaScript -->
+  </select>
+</div>
+
+<table id="scheduleTable">
+  <thead>
+    <tr>
+      <th>วัน/เวลา</th>
+      <th>08:00 - 10:00</th>
+      <th>10:00 - 12:00</th>
+      <th>13:00 - 15:00</th>
+      <th>15:00 - 17:00</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- ตารางเวลาจะถูกสร้างโดย JavaScript -->
+  </tbody>
+</table>
+
+<script>
+  // ข้อมูลจำลองวิทยาเขต และห้องเรียน
+  const campuses = {
+    "50": { name: "แม่โจ้", rooms: ["103", "104", "105"] },
+    "51": { name: "เชียงใหม่", rooms: ["201", "202", "203"] },
+    "52": { name: "ลำพูน", rooms: ["301", "302"] },
+  };
+
+  // ตารางเวลาจำลอง (วัน x เวลา x ห้อง)
+  // true = ว่าง, false = จองแล้ว
+  const scheduleData = {
+    "103": {
+      "จันทร์": { "08:00-10:00": true, "10:00-12:00": false, "13:00-15:00": true, "15:00-17:00": true },
+      "อังคาร": { "08:00-10:00": true, "10:00-12:00": true, "13:00-15:00": false, "15:00-17:00": true },
+      "พุธ":   { "08:00-10:00": false, "10:00-12:00": true, "13:00-15:00": true, "15:00-17:00": false },
+      "พฤหัส": { "08:00-10:00": true, "10:00-12:00": true, "13:00-15:00": true, "15:00-17:00": true },
+      "ศุกร์":  { "08:00-10:00": false, "10:00-12:00": false, "13:00-15:00": true, "15:00-17:00": true },
+    },
+    "104": {
+      "จันทร์": { "08:00-10:00": true, "10:00-12:00": true, "13:00-15:00": false, "15:00-17:00": true },
+      "อังคาร": { "08:00-10:00": false, "10:00-12:00": true, "13:00-15:00": true, "15:00-17:00": false },
+      "พุธ":   { "08:00-10:00": true, "10:00-12:00": true, "13:00-15:00": false, "15:00-17:00": true },
+      "พฤหัส": { "08:00-10:00": false, "10:00-12:00": true, "13:00-15:00": true, "15:00-17:00": true },
+      "ศุกร์":  { "08:00-10:00": true, "10:00-12:00": false, "13:00-15:00": true, "15:00-17:00": true },
+    },
+    // ห้องอื่น ๆ ...
+  };
+
+  const days = ["จันทร์", "อังคาร", "พุธ", "พฤหัส", "ศุกร์"];
+  const times = ["08:00-10:00", "10:00-12:00", "13:00-15:00", "15:00-17:00"];
+
+  const campusSelect = document.getElementById("campusSelect");
+  const roomSelect = document.getElementById("roomSelect");
+  const scheduleTableBody = document.querySelector("#scheduleTable tbody");
+
+  function populateRooms() {
+    const campusId = campusSelect.value;
+    roomSelect.innerHTML = ""; // เคลียร์ห้องก่อน
+    if (campuses[campusId]) {
+      campuses[campusId].rooms.forEach(room => {
+        const option = document.createElement("option");
+        option.value = room;
+        option.textContent = room;
+        roomSelect.appendChild(option);
+      });
+    }
+    updateSchedule();
+  }
+
+  function updateSchedule() {
+    const room = roomSelect.value;
+    scheduleTableBody.innerHTML = "";
+    if (!scheduleData[room]) {
+      scheduleTableBody.innerHTML = `<tr><td colspan="${times.length + 1}">ไม่มีข้อมูลตารางเวลา</td></tr>`;
+      return;
+    }
+    days.forEach(day => {
+      const tr = document.createElement("tr");
+      const tdDay = document.createElement("td");
+      tdDay.textContent = day;
+      tr.appendChild(tdDay);
+
+      times.forEach(time => {
+        const td = document.createElement("td");
+        const available = scheduleData[room][day]?.[time];
+        if (available) {
+          td.classList.add("available");
+          td.textContent = "ว่าง";
+          td.dataset.day = day;
+          td.dataset.time = time;
+          td.dataset.room = room;
+          td.addEventListener("click", () => {
+            alert(`จองห้อง ${room} วัน${day} เวลา ${time}`);
+            // คุณสามารถเพิ่มโค้ดส่งข้อมูลไป backend เพื่อบันทึกการจองที่นี่
+          });
+        } else {
+          td.classList.add("booked");
+          td.textContent = "จองแล้ว";
+        }
+        tr.appendChild(td);
+      });
+      scheduleTableBody.appendChild(tr);
+    });
+  }
+
+  // event listeners
+  campusSelect.addEventListener("change", populateRooms);
+  roomSelect.addEventListener("change", updateSchedule);
+
+  // เริ่มต้น
+  populateRooms();
+
+</script>
+
 </body>
 </html>
