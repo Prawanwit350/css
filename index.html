@@ -2,171 +2,177 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <title>ระบบตารางเวลาห้องเรียน</title>
+  <title>ระบบตารางเวลาแบบหลายขั้นตอน</title>
   <style>
-    body {
-      font-family: "Sarabun", sans-serif;
-      max-width: 900px;
-      margin: 30px auto;
-      padding: 0 10px;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    select {
-      padding: 6px 10px;
-      margin-right: 15px;
-      font-size: 16px;
-    }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #444;
-      padding: 10px;
-      text-align: center;
-    }
-    th {
-      background-color: #f0f0f0;
-    }
-    .available {
-      background-color: #c8e6c9; /* สีเขียวอ่อน = ว่าง */
-      cursor: pointer;
-    }
-    .booked {
-      background-color: #ffcdd2; /* สีแดงอ่อน = จองแล้ว */
-      cursor: not-allowed;
-    }
+    body { font-family: "Sarabun", sans-serif; max-width: 900px; margin: 20px auto; }
+    .hidden { display: none; }
+    select, button { padding: 8px; font-size: 16px; margin: 10px 0; }
+    table { border-collapse: collapse; width: 100%; margin-top: 15px; }
+    th, td { border: 1px solid #444; padding: 8px; text-align: center; }
+    th { background: #eee; }
+    a { cursor: pointer; color: blue; text-decoration: underline; }
   </style>
 </head>
 <body>
 
-<h1>ระบบตารางเวลาห้องเรียน</h1>
+<h2>ระบบตารางการใช้ห้องเรียน</h2>
 
-<div>
-  <label for="campusSelect">เลือกวิทยาเขต:</label>
-  <select id="campusSelect">
-    <option value="50">แม่โจ้</option>
-    <option value="51">เชียงใหม่</option>
-    <option value="52">ลำพูน</option>
-  </select>
-
-  <label for="roomSelect">เลือกห้องเรียน:</label>
-  <select id="roomSelect">
-    <!-- ห้องเรียนจะถูกเติมโดย JavaScript -->
-  </select>
+<!-- หน้า 1: เลือกอาคาร -->
+<div id="step1">
+  <h3>1. เลือกอาคาร/วิทยาเขต</h3>
+  <ul id="buildingList">
+    <!-- รายการอาคารจะถูกเติมโดย JS -->
+  </ul>
 </div>
 
-<table id="scheduleTable">
-  <thead>
-    <tr>
-      <th>วัน/เวลา</th>
-      <th>08:00 - 10:00</th>
-      <th>10:00 - 12:00</th>
-      <th>13:00 - 15:00</th>
-      <th>15:00 - 17:00</th>
-    </tr>
-  </thead>
-  <tbody>
-    <!-- ตารางเวลาจะถูกสร้างโดย JavaScript -->
-  </tbody>
-</table>
+<!-- หน้า 2: เลือกห้อง -->
+<div id="step2" class="hidden">
+  <h3>2. เลือกห้องในอาคาร <span id="selectedBuildingName"></span></h3>
+  <select id="roomSelect">
+    <!-- รายการห้องเติมโดย JS -->
+  </select>
+  <br />
+  <button id="btnShowSchedule">ดูตาราง</button>
+  <br/>
+  <a onclick="goBack(1)">กลับไปเลือกอาคาร</a>
+</div>
+
+<!-- หน้า 3: ตารางเวลา -->
+<div id="step3" class="hidden">
+  <h3>3. ตารางเวลาห้อง <span id="selectedRoomName"></span></h3>
+  <div id="scheduleTableContainer"></div>
+  <br />
+  <a onclick="goBack(2)">กลับไปเลือกห้อง</a>
+</div>
 
 <script>
-  // ข้อมูลจำลองวิทยาเขต และห้องเรียน
-  const campuses = {
-    "50": { name: "แม่โจ้", rooms: ["103", "104", "105"] },
-    "51": { name: "เชียงใหม่", rooms: ["201", "202", "203"] },
-    "52": { name: "ลำพูน", rooms: ["301", "302"] },
-  };
+  // ข้อมูลจำลอง
+  const buildings = [
+    { id: "103", name: "อาคารสังคมศาสตร์", rooms: [
+      { id: "10301", name: "ห้อง 1" },
+      { id: "10302", name: "ห้อง 2" }
+    ]},
+    { id: "104", name: "อาคารวิทยาศาสตร์", rooms: [
+      { id: "10401", name: "LAB 1" },
+      { id: "10402", name: "LAB 2" },
+      { id: "10403", name: "LAB 3" }
+    ]},
+    { id: "105", name: "อาคารเกษตร", rooms: [
+      { id: "10501", name: "ห้องอบรม 1" },
+      { id: "10502", name: "ห้องอบรม 2" }
+    ]}
+  ];
 
-  // ตารางเวลาจำลอง (วัน x เวลา x ห้อง)
-  // true = ว่าง, false = จองแล้ว
-  const scheduleData = {
-    "103": {
-      "จันทร์": { "08:00-10:00": true, "10:00-12:00": false, "13:00-15:00": true, "15:00-17:00": true },
-      "อังคาร": { "08:00-10:00": true, "10:00-12:00": true, "13:00-15:00": false, "15:00-17:00": true },
-      "พุธ":   { "08:00-10:00": false, "10:00-12:00": true, "13:00-15:00": true, "15:00-17:00": false },
-      "พฤหัส": { "08:00-10:00": true, "10:00-12:00": true, "13:00-15:00": true, "15:00-17:00": true },
-      "ศุกร์":  { "08:00-10:00": false, "10:00-12:00": false, "13:00-15:00": true, "15:00-17:00": true },
+  // ตารางเวลา (จำลอง)
+  // โครงสร้าง: schedule[roomId][day][time] = "ข้อมูล"
+  const schedule = {
+    "10301": {
+      "จันทร์": { "08:00-10:00": "รหัสวิชา 123", "10:00-12:00": "-", "13:00-15:00": "รหัสวิชา 456" },
+      "อังคาร": { "08:00-10:00": "-", "10:00-12:00": "รหัสวิชา 789", "13:00-15:00": "-" },
     },
-    "104": {
-      "จันทร์": { "08:00-10:00": true, "10:00-12:00": true, "13:00-15:00": false, "15:00-17:00": true },
-      "อังคาร": { "08:00-10:00": false, "10:00-12:00": true, "13:00-15:00": true, "15:00-17:00": false },
-      "พุธ":   { "08:00-10:00": true, "10:00-12:00": true, "13:00-15:00": false, "15:00-17:00": true },
-      "พฤหัส": { "08:00-10:00": false, "10:00-12:00": true, "13:00-15:00": true, "15:00-17:00": true },
-      "ศุกร์":  { "08:00-10:00": true, "10:00-12:00": false, "13:00-15:00": true, "15:00-17:00": true },
-    },
-    // ห้องอื่น ๆ ...
+    "10401": {
+      "จันทร์": { "08:00-10:00": "LAB เคมี", "10:00-12:00": "LAB ฟิสิกส์", "13:00-15:00": "-" },
+      "อังคาร": { "08:00-10:00": "-", "10:00-12:00": "LAB ชีววิทยา", "13:00-15:00": "LAB ฟิสิกส์" },
+    }
+    // เพิ่มเติมได้ตามต้องการ
   };
 
   const days = ["จันทร์", "อังคาร", "พุธ", "พฤหัส", "ศุกร์"];
-  const times = ["08:00-10:00", "10:00-12:00", "13:00-15:00", "15:00-17:00"];
+  const times = ["08:00-10:00", "10:00-12:00", "13:00-15:00"];
 
-  const campusSelect = document.getElementById("campusSelect");
+  const step1 = document.getElementById("step1");
+  const step2 = document.getElementById("step2");
+  const step3 = document.getElementById("step3");
+
+  const buildingList = document.getElementById("buildingList");
+  const selectedBuildingName = document.getElementById("selectedBuildingName");
   const roomSelect = document.getElementById("roomSelect");
-  const scheduleTableBody = document.querySelector("#scheduleTable tbody");
+  const btnShowSchedule = document.getElementById("btnShowSchedule");
+  const selectedRoomName = document.getElementById("selectedRoomName");
+  const scheduleTableContainer = document.getElementById("scheduleTableContainer");
 
-  function populateRooms() {
-    const campusId = campusSelect.value;
-    roomSelect.innerHTML = ""; // เคลียร์ห้องก่อน
-    if (campuses[campusId]) {
-      campuses[campusId].rooms.forEach(room => {
-        const option = document.createElement("option");
-        option.value = room;
-        option.textContent = room;
-        roomSelect.appendChild(option);
-      });
-    }
-    updateSchedule();
-  }
+  let selectedBuilding = null;
+  let selectedRoom = null;
 
-  function updateSchedule() {
-    const room = roomSelect.value;
-    scheduleTableBody.innerHTML = "";
-    if (!scheduleData[room]) {
-      scheduleTableBody.innerHTML = `<tr><td colspan="${times.length + 1}">ไม่มีข้อมูลตารางเวลา</td></tr>`;
-      return;
-    }
-    days.forEach(day => {
-      const tr = document.createElement("tr");
-      const tdDay = document.createElement("td");
-      tdDay.textContent = day;
-      tr.appendChild(tdDay);
-
-      times.forEach(time => {
-        const td = document.createElement("td");
-        const available = scheduleData[room][day]?.[time];
-        if (available) {
-          td.classList.add("available");
-          td.textContent = "ว่าง";
-          td.dataset.day = day;
-          td.dataset.time = time;
-          td.dataset.room = room;
-          td.addEventListener("click", () => {
-            alert(`จองห้อง ${room} วัน${day} เวลา ${time}`);
-            // คุณสามารถเพิ่มโค้ดส่งข้อมูลไป backend เพื่อบันทึกการจองที่นี่
-          });
-        } else {
-          td.classList.add("booked");
-          td.textContent = "จองแล้ว";
-        }
-        tr.appendChild(td);
-      });
-      scheduleTableBody.appendChild(tr);
+  // แสดงรายการอาคาร
+  function showBuildings() {
+    buildingList.innerHTML = "";
+    buildings.forEach(b => {
+      const li = document.createElement("li");
+      const a = document.createElement("a");
+      a.textContent = `${b.id} - ${b.name}`;
+      a.onclick = () => selectBuilding(b);
+      li.appendChild(a);
+      buildingList.appendChild(li);
     });
   }
 
-  // event listeners
-  campusSelect.addEventListener("change", populateRooms);
-  roomSelect.addEventListener("change", updateSchedule);
+  // เลือกอาคาร
+  function selectBuilding(building) {
+    selectedBuilding = building;
+    selectedBuildingName.textContent = building.name;
+    populateRooms(building.rooms);
+    showStep(2);
+  }
+
+  // เติม dropdown ห้อง
+  function populateRooms(rooms) {
+    roomSelect.innerHTML = "";
+    rooms.forEach(r => {
+      const opt = document.createElement("option");
+      opt.value = r.id;
+      opt.textContent = r.name;
+      roomSelect.appendChild(opt);
+    });
+  }
+
+  // แสดงตารางเวลา
+  function showSchedule(roomId) {
+    selectedRoom = roomSelect.options[roomSelect.selectedIndex].text;
+    selectedRoomName.textContent = selectedRoom;
+
+    // สร้างตาราง
+    let html = "<table><thead><tr><th>วัน/เวลา</th>";
+    times.forEach(time => {
+      html += `<th>${time}</th>`;
+    });
+    html += "</tr></thead><tbody>";
+
+    days.forEach(day => {
+      html += `<tr><td>${day}</td>`;
+      times.forEach(time => {
+        const info = schedule[roomId]?.[day]?.[time] || "-";
+        html += `<td>${info}</td>`;
+      });
+      html += "</tr>";
+    });
+
+    html += "</tbody></table>";
+
+    scheduleTableContainer.innerHTML = html;
+    showStep(3);
+  }
+
+  // สลับหน้า
+  function showStep(step) {
+    step1.classList.toggle("hidden", step !== 1);
+    step2.classList.toggle("hidden", step !== 2);
+    step3.classList.toggle("hidden", step !== 3);
+  }
+
+  // กลับไปหน้าเดิม
+  function goBack(step) {
+    showStep(step);
+  }
+
+  // Event
+  btnShowSchedule.onclick = () => {
+    showSchedule(roomSelect.value);
+  };
 
   // เริ่มต้น
-  populateRooms();
-
+  showBuildings();
+  showStep(1);
 </script>
 
 </body>
