@@ -1,48 +1,118 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <title>ระบบตารางเวลาแบบหลายขั้นตอน</title>
-  <style>
-    body { font-family: "Sarabun", sans-serif; max-width: 900px; margin: 20px auto; }
-    .hidden { display: none; }
-    select, button { padding: 8px; font-size: 16px; margin: 10px 0; }
-    table { border-collapse: collapse; width: 100%; margin-top: 15px; }
-    th, td { border: 1px solid #444; padding: 8px; text-align: center; }
-    th { background: #eee; }
-    a { cursor: pointer; color: blue; text-decoration: underline; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ตารางการใช้ห้อง (Minimal Responsive)</title>
+<style>
+  /* Mobile first */
+  body {
+    font-family: 'Sarabun', sans-serif, sans-serif;
+    margin: 10px;
+    background: #f9f9f9;
+    color: #222;
+    line-height: 1.5;
+  }
+  h2 {
+    text-align: center;
+    color: #333;
+  }
+  button, select {
+    font-size: 1rem;
+    padding: 12px 16px;
+    margin: 10px 0;
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background-color: #eee;
+  }
+  ul {
+    list-style: none;
+    padding-left: 0;
+  }
+  ul li {
+    margin-bottom: 12px;
+  }
+  ul li button {
+    width: 100%;
+    text-align: left;
+    background: #007BFF;
+    color: white;
+    border: none;
+  }
+  ul li button:hover {
+    background: #0056b3;
+  }
+  .hidden {
+    display: none;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 0.9rem;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    padding: 8px 6px;
+    text-align: center;
+  }
+  th {
+    background-color: #007BFF;
+    color: white;
+  }
+  .nav-link {
+    display: inline-block;
+    margin: 15px 0;
+    color: #007BFF;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  .nav-link:hover {
+    color: #0056b3;
+  }
+
+  /* Desktop - กว้างกว่า 600px */
+  @media (min-width: 600px) {
+    body {
+      max-width: 720px;
+      margin: 20px auto;
+    }
+    button, select {
+      max-width: 400px;
+    }
+  }
+</style>
 </head>
 <body>
 
-<h2>ระบบตารางการใช้ห้องเรียน</h2>
+<h2>ตารางการใช้ห้อง (Minimal Responsive)</h2>
 
 <!-- หน้า 1: เลือกอาคาร -->
 <div id="step1">
   <h3>1. เลือกอาคาร/วิทยาเขต</h3>
-  <ul id="buildingList">
-    <!-- รายการอาคารจะถูกเติมโดย JS -->
-  </ul>
+  <ul id="buildingList"></ul>
 </div>
 
 <!-- หน้า 2: เลือกห้อง -->
 <div id="step2" class="hidden">
   <h3>2. เลือกห้องในอาคาร <span id="selectedBuildingName"></span></h3>
-  <select id="roomSelect">
-    <!-- รายการห้องเติมโดย JS -->
-  </select>
-  <br />
+  <select id="roomSelect"></select>
   <button id="btnShowSchedule">ดูตาราง</button>
-  <br/>
-  <a onclick="goBack(1)">กลับไปเลือกอาคาร</a>
+  <div class="nav-link" onclick="goBack(1)">← กลับไปเลือกอาคาร</div>
 </div>
 
 <!-- หน้า 3: ตารางเวลา -->
 <div id="step3" class="hidden">
   <h3>3. ตารางเวลาห้อง <span id="selectedRoomName"></span></h3>
   <div id="scheduleTableContainer"></div>
-  <br />
-  <a onclick="goBack(2)">กลับไปเลือกห้อง</a>
+  <div class="nav-link" onclick="goBack(2)">← กลับไปเลือกห้อง</div>
 </div>
 
 <script>
@@ -63,8 +133,6 @@
     ]}
   ];
 
-  // ตารางเวลา (จำลอง)
-  // โครงสร้าง: schedule[roomId][day][time] = "ข้อมูล"
   const schedule = {
     "10301": {
       "จันทร์": { "08:00-10:00": "รหัสวิชา 123", "10:00-12:00": "-", "13:00-15:00": "รหัสวิชา 456" },
@@ -74,7 +142,6 @@
       "จันทร์": { "08:00-10:00": "LAB เคมี", "10:00-12:00": "LAB ฟิสิกส์", "13:00-15:00": "-" },
       "อังคาร": { "08:00-10:00": "-", "10:00-12:00": "LAB ชีววิทยา", "13:00-15:00": "LAB ฟิสิกส์" },
     }
-    // เพิ่มเติมได้ตามต้องการ
   };
 
   const days = ["จันทร์", "อังคาร", "พุธ", "พฤหัส", "ศุกร์"];
@@ -99,10 +166,10 @@
     buildingList.innerHTML = "";
     buildings.forEach(b => {
       const li = document.createElement("li");
-      const a = document.createElement("a");
-      a.textContent = `${b.id} - ${b.name}`;
-      a.onclick = () => selectBuilding(b);
-      li.appendChild(a);
+      const btn = document.createElement("button");
+      btn.textContent = `${b.id} - ${b.name}`;
+      btn.onclick = () => selectBuilding(b);
+      li.appendChild(btn);
       buildingList.appendChild(li);
     });
   }
@@ -131,7 +198,6 @@
     selectedRoom = roomSelect.options[roomSelect.selectedIndex].text;
     selectedRoomName.textContent = selectedRoom;
 
-    // สร้างตาราง
     let html = "<table><thead><tr><th>วัน/เวลา</th>";
     times.forEach(time => {
       html += `<th>${time}</th>`;
@@ -165,7 +231,6 @@
     showStep(step);
   }
 
-  // Event
   btnShowSchedule.onclick = () => {
     showSchedule(roomSelect.value);
   };
