@@ -2,10 +2,10 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ตารางการใช้ห้อง</title>
   <link href="https://fonts.googleapis.com/css2?family=Prompt&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
@@ -15,16 +15,32 @@
   <section class="filters">
     <select id="buildingSelect">
       <option value="">-- เลือกอาคาร --</option>
-      <option value="Lab คอม3-4">Lab คอม3-4</option>
-      <!-- เพิ่มได้อีก -->
     </select>
-
-    <select id="roomSelect" disabled>
+    <select id="roomSelect">
       <option value="">-- เลือกห้อง --</option>
     </select>
   </section>
 
-  <section id="scheduleContainer"></section>
+  <section class="schedule">
+    <table>
+      <thead>
+        <tr>
+          <th>Day/Time</th>
+          <th>8:00-9:00</th>
+          <th>9:00-10:00</th>
+          <th>10:00-11:00</th>
+          <th>11:00-12:00</th>
+          <th>12:00-13:00</th>
+          <th>13:00-14:00</th>
+          <th>14:00-15:00</th>
+          <th>15:00-16:00</th>
+        </tr>
+      </thead>
+      <tbody id="scheduleBody">
+        <!-- ตารางจะถูกเติมโดย JavaScript -->
+      </tbody>
+    </table>
+  </section>
 
   <script src="script.js"></script>
 </body>
