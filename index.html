@@ -1,141 +1,70 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>ตารางการใช้ห้อง </title>
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
-<style>
-      :root {
-      --green-dark: #1B5E06;
-      --green-mint: #4FBA77;
-      --white: #FFFFFF;
-      --purple-dark: #1E152A;
-      --gray-dark: #3A2E39;
-      --blue-class: #a3c9ff;
-    }
-    body {
-      font-family: 'Prompt', sans-serif;
-      margin: 0;
-      padding: 16px;
-      background: var(--white);
-      color: var(--purple-dark);
-    }
-
-    h2 {
-      text-align: center;
-      color: var(--green-dark);
-    }
-
-    select, button {
-      width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      border-radius: 6px;
-      font-size: 1rem;
-      box-sizing: border-box;
-    }
-
-    select {
-      border: 1px solid var(--gray-dark);
-    }
-
-    button {
-      background-color: var(--green-dark);
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: var(--green-mint);
-    }
-
-    .schedule-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.8rem;
-      margin-top: 20px;
-    }
-
-    .schedule-table th,
-    .schedule-table td {
-      border: 1px solid #999;
-      text-align: center;
-      vertical-align: top;
-      padding: 4px;
-    }
-
-    .schedule-table th {
-      background-color: var(--gray-dark);
-      color: white;
-    }
-
-    .schedule-table td.time-col {
-      background-color: #e0e0e0;
-      font-weight: bold;
-    }
-
-    .class-block {
-      background-color: var(--blue-class);
-      height: 60px;
-      position: relative;
-      overflow: hidden;
-      font-size: 0.75rem;
-      white-space: nowrap;
-    }
-
-    .class-block p {
-      margin: 2px 0;
-      line-height: 1.2;
-      font-size: 0.75rem;
-    }
-
-    @media (min-width: 600px) {
-      select, button {
-        max-width: 400px;
-        margin: 8px auto;
-        display: block;
-      }
-  }
-</style>
+  <meta charset="UTF-8" />
+  <title>ระบบตารางเวลาแบบหลายขั้นตอน</title>
+  <style>
+    body { font-family: "Sarabun", sans-serif; max-width: 900px; margin: 20px auto; }
+    .hidden { display: none; }
+    select, button { padding: 8px; font-size: 16px; margin: 10px 0; }
+    table { border-collapse: collapse; width: 100%; margin-top: 15px; }
+    th, td { border: 1px solid #444; padding: 8px; text-align: center; }
+    th { background: #eee; }
+    a { cursor: pointer; color: blue; text-decoration: underline; }
+  </style>
 </head>
 <body>
 
-<h2>ตารางการใช้ห้อง</h2>
+<h2>ระบบตารางการใช้ห้องเรียน</h2>
 
 <!-- หน้า 1: เลือกอาคาร -->
 <div id="step1">
   <h3>1. เลือกอาคาร/วิทยาเขต</h3>
-  <ul id="buildingList"></ul>
+  <ul id="buildingList">
+    <!-- รายการอาคารจะถูกเติมโดย JS -->
+  </ul>
 </div>
 
 <!-- หน้า 2: เลือกห้อง -->
 <div id="step2" class="hidden">
   <h3>2. เลือกห้องในอาคาร <span id="selectedBuildingName"></span></h3>
-  <select id="roomSelect"></select>
+  <select id="roomSelect">
+    <!-- รายการห้องเติมโดย JS -->
+  </select>
+  <br />
   <button id="btnShowSchedule">ดูตาราง</button>
-  <div class="nav-link" onclick="goBack(1)">← กลับไปเลือกอาคาร</div>
+  <br/>
+  <a onclick="goBack(1)">กลับไปเลือกอาคาร</a>
 </div>
 
 <!-- หน้า 3: ตารางเวลา -->
 <div id="step3" class="hidden">
   <h3>3. ตารางเวลาห้อง <span id="selectedRoomName"></span></h3>
   <div id="scheduleTableContainer"></div>
-  <div class="nav-link" onclick="goBack(2)">← กลับไปเลือกห้อง</div>
+  <br />
+  <a onclick="goBack(2)">กลับไปเลือกห้อง</a>
 </div>
 
 <script>
   // ข้อมูลจำลอง
   const buildings = [
-
-    { id: "105", name: "อาคารวิทยาศาสตร์", rooms: [
-      { id: "10501", name: "Lab คอม3-4 ประเภท : ไม่กำหนด ความจุ : 120 พื้นที่ : 120" }
-
+    { id: "103", name: "อาคารสังคมศาสตร์", rooms: [
+      { id: "10301", name: "ห้อง 1" },
+      { id: "10302", name: "ห้อง 2" }
+    ]},
+    { id: "104", name: "อาคารวิทยาศาสตร์", rooms: [
+      { id: "10401", name: "LAB 1" },
+      { id: "10402", name: "LAB 2" },
+      { id: "10403", name: "LAB 3" }
+    ]},
+    { id: "105", name: "อาคารเกษตร", rooms: [
+      { id: "10501", name: "ห้องอบรม 1" },
+      { id: "10502", name: "ห้องอบรม 2" }
     ]}
-
   ];
 
+  // ตารางเวลา (จำลอง)
+  // โครงสร้าง: schedule[roomId][day][time] = "ข้อมูล"
   const schedule = {
     "10301": {
       "จันทร์": { "08:00-10:00": "รหัสวิชา 123", "10:00-12:00": "-", "13:00-15:00": "รหัสวิชา 456" },
@@ -145,6 +74,7 @@
       "จันทร์": { "08:00-10:00": "LAB เคมี", "10:00-12:00": "LAB ฟิสิกส์", "13:00-15:00": "-" },
       "อังคาร": { "08:00-10:00": "-", "10:00-12:00": "LAB ชีววิทยา", "13:00-15:00": "LAB ฟิสิกส์" },
     }
+    // เพิ่มเติมได้ตามต้องการ
   };
 
   const days = ["จันทร์", "อังคาร", "พุธ", "พฤหัส", "ศุกร์"];
@@ -165,83 +95,96 @@
   let selectedRoom = null;
 
   // แสดงรายการอาคาร
-  function showBuildings() {
-    buildingList.innerHTML = "";
-    buildings.forEach(b => {
-      const li = document.createElement("li");
-      const btn = document.createElement("button");
-      btn.textContent = `${b.id} - ${b.name}`;
-      btn.onclick = () => selectBuilding(b);
-      li.appendChild(btn);
-      buildingList.appendChild(li);
-    });
-  }
+function showSchedule(roomId) {
+  selectedRoom = roomSelect.options[roomSelect.selectedIndex].text;
+  selectedRoomName.textContent = selectedRoom;
 
-  // เลือกอาคาร
-  function selectBuilding(building) {
-    selectedBuilding = building;
-    selectedBuildingName.textContent = building.name;
-    populateRooms(building.rooms);
-    showStep(2);
-  }
+  // ตารางที่คุณให้มา
+  const html = `
+  <h2>ตารางการใช้ห้อง</h2>
+  <table class="schedule-table">
+    <thead>
+      <tr>
+        <th>Day/Time</th>
+        <th>08:00-09:00</th>
+        <th>09:00-10:00</th>
+        <th>10:00-11:00</th>
+        <th>11:00-12:00</th>
+        <th>12:00-13:00</th>
+        <th>13:00-14:00</th>
+        <th>14:00-15:00</th>
+        <th>15:00-16:00</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="time-col">จันทร์</td>
+        <td colspan="2" class="class-block">
+          <p>10301231</p>
+          <p>(3) 1,</p>
+          <p>L1</p>
+        </td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td colspan="2" class="class-block">
+          <p>10301222</p>
+          <p>(3) 1,</p>
+          <p>L1</p>
+        </td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="time-col">อังคาร</td>
+        <td class="class-block">
+          <p>10301231</p>
+          <p>(3) 1,</p>
+          <p>L1</p>
+        </td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td colspan="2" class="class-block">
+          <p>10301225</p>
+          <p>(3) 1,</p>
+          <p>L1</p>
+        </td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="time-col">พุธ</td>
+        <td colspan="2" class="class-block">
+          <p>10301112</p>
+          <p>(3) 1,</p>
+          <p>L1</p>
+        </td>
+        <td></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr>
+        <td class="time-col">พฤหัสบดี</td>
+        <td></td><td></td><td></td><td></td>
+        <td></td>
+        <td colspan="2" class="class-block">
+          <p>10301223</p>
+          <p>(3) 1,</p>
+          <p>L1</p>
+        </td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="time-col">ศุกร์</td>
+        <td></td><td></td><td></td><td></td><td></td><td></td>
+        <td colspan="2" class="class-block">
+          <p>10301223</p>
+          <p>(3) 1,</p>
+          <p>L1</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  `;
 
-  // เติม dropdown ห้อง
-  function populateRooms(rooms) {
-    roomSelect.innerHTML = "";
-    rooms.forEach(r => {
-      const opt = document.createElement("option");
-      opt.value = r.id;
-      opt.textContent = r.name;
-      roomSelect.appendChild(opt);
-    });
-  }
-
-  // แสดงตารางเวลา
-  function showSchedule(roomId) {
-    selectedRoom = roomSelect.options[roomSelect.selectedIndex].text;
-    selectedRoomName.textContent = selectedRoom;
-
-    let html = "<table><thead><tr><th>วัน/เวลา</th>";
-    times.forEach(time => {
-      html += `<th>${time}</th>`;
-    });
-    html += "</tr></thead><tbody>";
-
-    days.forEach(day => {
-      html += `<tr><td>${day}</td>`;
-      times.forEach(time => {
-        const info = schedule[roomId]?.[day]?.[time] || "-";
-        html += `<td>${info}</td>`;
-      });
-      html += "</tr>";
-    });
-
-    html += "</tbody></table>";
-
-    scheduleTableContainer.innerHTML = html;
-    showStep(3);
-  }
-
-  // สลับหน้า
-  function showStep(step) {
-    step1.classList.toggle("hidden", step !== 1);
-    step2.classList.toggle("hidden", step !== 2);
-    step3.classList.toggle("hidden", step !== 3);
-  }
-
-  // กลับไปหน้าเดิม
-  function goBack(step) {
-    showStep(step);
-  }
-
-  btnShowSchedule.onclick = () => {
-    showSchedule(roomSelect.value);
-  };
-
-  // เริ่มต้น
-  showBuildings();
-  showStep(1);
-</script>
-
-</body>
-</html>
+  scheduleTableContainer.innerHTML = html;
+  showStep(3);
+}
